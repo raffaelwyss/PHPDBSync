@@ -1,7 +1,6 @@
 <?php
 
 namespace PHPDBSync\Sync;
-use PDO;
 use PHPDBSync\Core\Core;
 use PHPDBSync\Core\Database;
 
@@ -42,9 +41,14 @@ class Structur
 
     public function synchronisation()
     {
-        Core::cliMessage(' > Lade Source-Struktur ', 'white', 1);
-        $sourceStructure = $this->getStructur($this->sourceDB);
-        echo print_r($sourceStructure, 1);
+        Core::cliMessage(' > Load Source-Structur ', 'white', 1);
+        $sourceTables= $this->getTableStructur($this->sourceDB);
+
+        Core::cliMessage(' > Load Target-Structur ', 'white', 1);
+        $targetTables= $this->getTableStructur($this->targetDB);
+
+        echo print_r($sourceTables, 1);
+        echo print_r($targetTables, 1);
 
     }
 
@@ -53,25 +57,27 @@ class Structur
      *
      * @return array
      */
-    private function getStructur($database)
+    private function getTableStructur($database)
     {
         $tables = $database->query('SHOW FULL TABLES')->fetchAll();
         foreach ($tables AS &$table) {
             $table['name'] = $table['Tables_in_'.$database->name];
+            Core::cliMessage('  > Table "'.$table['name'].'"', 'white', 1, false);
             $table['type'] = $table['Table_type'];
-            $table['fields'] = array();
+            $table['fields'] = $this->getColumnStructur(
+                $database, $table['name']
+            );
             unset($table['Tables_in_'.$database->name]);
             unset($table['Table_type']);
+            Core::cliMessage(' done ', 'green', 1);
         }
+        return $tables;
+    }
 
-        Core::cliMessage('  > Tabellen geladen', 'green', 1);
-
-
-
-        $structure = array();
-
-
-        return $structure;
+    private function getColumnStructur($database, $tablename)
+    {
+        $columns = $database->query('SHOW FULL COLUMNS FROM '.$tablename)->fetchAll();
+        return $columns;
     }
 
 }

@@ -31,7 +31,7 @@ class Core
     public static $cliDetailLevel = 1;
 
 
-    public static function cliMessage($message, $style = "white", $forLevel = 0)
+    public static function cliMessage($message, $style = "white", $forLevel = 0, $newLine = true)
     {
         if (self::$cli AND $forLevel <= self::$cliDetailLevel) {
             switch ($style) {
@@ -45,7 +45,10 @@ class Core
                     echo chr(27)."[0;37m";
                     break;
             }
-            echo " ".$message." \n";
+            echo " ".$message;
+            if ($newLine) {
+                echo " \n";
+            }
         }
     }
 
