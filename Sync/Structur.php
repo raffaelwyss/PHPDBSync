@@ -1,6 +1,7 @@
 <?php
 
 namespace PHPDBSync\Sync;
+use PDO;
 
 /**
  * Sync the Structure of the Database
@@ -15,9 +16,41 @@ namespace PHPDBSync\Sync;
 class Structur
 {
 
+    /**
+     * @var null|PDO
+     */
+    private $sourcePDO = null;
+
+    /**
+     * @var null|PDO
+     */
+    private $targetPDO = null;
+
+    /**
+     * Constructor for the Structur-Class
+     *
+     * @param PDO $sourcePDO
+     * @param PDO $targetPDO
+     */
     public function __construct($sourcePDO, $targetPDO)
     {
+        $this->sourcePDO = $sourcePDO;
+        $this->targetPDO = $targetPDO;
+    }
 
+    public function synchronisation()
+    {
+        $sourceStructure = $this->getStructur();
+        echo print_r($sourceStructure, 1);
+
+    }
+
+    private function getStructur($typ = 'source')
+    {
+        $structure = array();
+
+
+        return $structure;
     }
 
 }

@@ -45,6 +45,11 @@ class Database
         return $return;
     }
 
+    public function query($sql, $data)
+    {
+
+    }
+
     /**
      * Close the database connection
      *

@@ -104,7 +104,8 @@ class PHPDBSync
         if ($this->connectDatabases($sourceName, $targetName)) {
 
             // Structur Sync
-            $_struct = new Structur($this->sourcePDO, $this->targetPDO);
+            $_structur = new Structur($this->sourcePDO, $this->targetPDO);
+            $_structur->synchronisation();
 
 
             // Full-Tables Sync
