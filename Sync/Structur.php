@@ -15,4 +15,9 @@ namespace PHPDBSync\Sync;
 class Structur
 {
 
+    public function __construct($sourcePDO, $targetPDO)
+    {
+
+    }
+
 }
