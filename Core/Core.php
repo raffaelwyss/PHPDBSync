@@ -31,9 +31,9 @@ class Core
     public static $cliDetailLevel = 1;
 
 
-    public static function cliMessage($message, $style = "white")
+    public static function cliMessage($message, $style = "white", $forLevel = 0)
     {
-        if (self::$cli) {
+        if (self::$cli AND $forLevel <= self::$cliDetailLevel) {
             switch ($style) {
                 case 'red':
                     echo chr(27)."[0;31m";

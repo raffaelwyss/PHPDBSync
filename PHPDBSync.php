@@ -33,14 +33,14 @@ class PHPDBSync
     private $storageDatabases = array();
 
     /**
-     * @var null|PDO
+     * @var null|Database
      */
-    private $sourcePDO = null;
+    private $sourceDB = null;
 
     /**
-     * @var null|PDO
+     * @var null|Database
      */
-    private $targetPDO = null;
+    private $targetDB = null;
 
     /**
      * Load the Base Information and set the autoloader
@@ -104,7 +104,7 @@ class PHPDBSync
         if ($this->connectDatabases($sourceName, $targetName)) {
 
             // Structur Sync
-            $_structur = new Structur($this->sourcePDO, $this->targetPDO);
+            $_structur = new Structur($this->sourceDB, $this->targetDB);
             $_structur->synchronisation();
 
 
@@ -126,29 +126,30 @@ class PHPDBSync
         // Connection to the Source-Database
         $sourceDB = new Database();
         $sourceConfig = $this->storageDatabases[$sourceName];
-        $this->sourcePDO = $sourceDB->connect(
+        $sourceDB->connect(
             $sourceConfig['engine'],
             $sourceConfig['host'],
             $sourceConfig['name'],
             $sourceConfig['user'],
             $sourceConfig['password']
         );
+        $this->sourceDB = $sourceDB;
         Core::cliMessage(" > SourceDB connected", 'green');
 
         // Connection to the Target-Database
         $targetDB = new Database();
         $targetConfig = $this->storageDatabases[$targetName];
-        $this->targetPDO = $targetDB->connect(
+        $targetDB->connect(
             $targetConfig['engine'],
             $targetConfig['host'],
             $targetConfig['name'],
             $targetConfig['user'],
             $targetConfig['password']
         );
+        $this->targetDB = $targetDB;
         Core::cliMessage(" > TargetDB connected", 'green');
 
-
-        if ($this->sourcePDO AND $this->targetPDO) {
+        if ($this->sourceDB->pdo !== false AND $this->targetDB->pdo !== false) {
             return true;
         }
         return false;

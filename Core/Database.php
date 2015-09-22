@@ -24,6 +24,13 @@ class Database
     public $pdo;
 
     /**
+     * Hold the Database-Name
+     *
+     * @var null|string
+     */
+    public $name = null;
+
+    /**
      * Etablish the Connection to the Database
      *
      * @param string $engine    mysql is only supported
@@ -40,14 +47,23 @@ class Database
         $dsn = $engine.':host='.$host.';dbname='.$database;
         $this->pdo = new PDO($dsn, $user, $password, [PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
         if ($this->pdo) {
+            $this->name = $database;
             $return = true;
+            $this->pdo->beginTransaction();
         }
         return $return;
     }
 
-    public function query($sql, $data)
+    public function query($sql, $data = array())
     {
-
+        $statement = $this->pdo->prepare($sql);
+        $statement->execute($data);
+        if (!$statement->execute($data)) {
+            Core::cliMessage('SQL-Fehler: '.$sql, 'red');
+            $this->pdo->rollBack();
+            return false;
+        }
+        return $statement;
     }
 
     /**
