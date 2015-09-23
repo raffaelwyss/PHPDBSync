@@ -42,13 +42,45 @@ class Structur
     public function synchronisation()
     {
         Core::cliMessage(' > Load Source-Structur ', 'white', 1);
-        $sourceTables= $this->getTableStructur($this->sourceDB);
+        $sourceTables = $this->getTableStructur($this->sourceDB);
 
         Core::cliMessage(' > Load Target-Structur ', 'white', 1);
         $targetTables= $this->getTableStructur($this->targetDB);
+        $tTables = array();
+        foreach ($targetTables AS $table) {
+            array_push($tTables, $table['name']);
+        }
 
-        echo print_r($sourceTables, 1);
-        echo print_r($targetTables, 1);
+        Core::cliMessage(' > start synchronisation', 'white', 1);
+
+        // Check Source-Tables...
+        foreach ($sourceTables AS $sourceTable) {
+
+            if (in_array($sourceTable['name'], $tTables)) {
+                // Field-Check
+                Core::cliMessage('   > Table '.$sourceTable['name'].' ', 'white', 1, false);
+                $alterStatements = $this->getAlterStatementsForTable(
+                    $sourceTable,
+                    $targetTables[array_search($sourceTable['name'], $tTables)]
+                );
+                if (count($alterStatements) > 0) {
+                    $this->targetDB->query(implode(';', $alterStatements));
+                    Core::cliMessage(' updated ', 'green');
+                } else {
+                    Core::cliMessage(' no changes ', 'green');
+                }
+
+            } else { // not exist
+                // > CreateTable
+                Core::cliMessage('   > Table '.$sourceTable['name'].' ', 'white', 1, false);
+                $createStatement = $this->getTableStatement(
+                    $this->sourceDB, $sourceTable
+                );
+                $this->targetDB->query($createStatement);
+                Core::cliMessage(' created ', 'green');
+            }
+
+        }
 
     }
 
@@ -59,25 +91,106 @@ class Structur
      */
     private function getTableStructur($database)
     {
-        $tables = $database->query('SHOW FULL TABLES')->fetchAll();
+        $tables = $database->query('SHOW TABLE STATUS')->fetchAll();
+        $returnTables = array();
         foreach ($tables AS &$table) {
-            $table['name'] = $table['Tables_in_'.$database->name];
-            Core::cliMessage('  > Table "'.$table['name'].'"', 'white', 1, false);
-            $table['type'] = $table['Table_type'];
-            $table['fields'] = $this->getColumnStructur(
-                $database, $table['name']
+            $newTable = array();
+            $newTable['name'] = $table['Name'];
+            $newTable['engine'] = $table['Engine'];
+            $newTable['collation'] = $table['Collation'];
+            Core::cliMessage('  > Table "'.$newTable['name'].'"', 'white', 1, false);
+            $newTable['fields'] = $this->getColumnStructur(
+                $database, $newTable['name']
             );
-            unset($table['Tables_in_'.$database->name]);
-            unset($table['Table_type']);
             Core::cliMessage(' done ', 'green', 1);
+            array_push($returnTables, $newTable);
         }
-        return $tables;
+        return $returnTables;
     }
 
     private function getColumnStructur($database, $tablename)
     {
         $columns = $database->query('SHOW FULL COLUMNS FROM '.$tablename)->fetchAll();
-        return $columns;
+        $newColumns = array();
+        foreach ($columns AS $column) {
+            $newColumns[$column['Field']] = $column;
+        }
+        return $newColumns;
+    }
+
+    /**
+     * @param Database $database
+     * @param String $table
+     */
+    private function getTableStatement($database, $table)
+    {
+        $data = $database->query(
+            "SHOW CREATE TABLE ".$table['name']
+        )->fetch();
+        return $data['Create Table'];
+    }
+
+    private function getAlterStatementsForTable($sourceTable, $targetTable)
+    {
+        $returnStatement = array();
+
+
+        foreach ($sourceTable['fields'] AS $fieldkey => $field) {
+
+            if (isset($targetTable['fields'][$fieldkey])) {
+                $statement = $this->getAlterStatementExistField(
+                    $field, $targetTable['fields'][$fieldkey]
+                );
+
+            } else {
+                $statement = $this->getAlterSatementNewField(
+                    $sourceTable['name'], $field
+                );
+            }
+            if ($statement != '') {
+                array_push(
+                    $returnStatement, $statement
+
+                );
+            }
+        }
+
+        return $returnStatement;
+    }
+
+    private function getAlterStatementExistField($sourceField, $targetField)
+    {
+        return '';
+    }
+
+    private function getAlterSatementNewField($sourceTable, $sourceField)
+    {
+        $alter =  'ALTER TABLE '.$sourceTable;
+        $alter .= ' ADD COLUMN '.$sourceField['Field'];
+        $alter .= ' '.$sourceField['Type'];
+
+        // Null-Value
+        if ($sourceField['Null'] == 'NO') {
+            $alter .= ' NOT NULL';
+        } else {
+            $alter .= ' NULL';
+        }
+
+        // Default-Value
+        if ($sourceField['Default'] != '') {
+            if ($sourceField['Type'] == 'timestamp') {
+                $alter .= ' DEFAULT '.$sourceField['Default'];
+            } else {
+                $alter .= ' DEFAULT "'.$sourceField['Default'];
+            }
+        }
+
+        // Extra-Value
+        if ($sourceField['Extra'] != '') {
+            $alter .= ' '.$sourceField['Extra'];
+        }
+
+        return $alter;
     }
 
 }

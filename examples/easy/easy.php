@@ -4,7 +4,7 @@ namespace PHPDBSync;
 
 require_once '../../PHPDBSync.php';
 
-error_reporting(0);
+//error_reporting(0);
 
 $sync = new PHPDBSync();
 $sync->setCli(true);

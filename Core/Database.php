@@ -57,9 +57,10 @@ class Database
     public function query($sql, $data = array())
     {
         $statement = $this->pdo->prepare($sql);
-        $statement->execute($data);
         if (!$statement->execute($data)) {
             Core::cliMessage('SQL-Fehler: '.$sql, 'red');
+            Core::cliMessage('SQL-String: '.print_r($statement, 1));
+            Core::cliMessage(' >> '.$statement->errorInfo()[2], 'red', 1);
             $this->pdo->rollBack();
             return false;
         }
