@@ -139,7 +139,9 @@ class Structur
 
             if (isset($targetTable['fields'][$fieldkey])) {
                 $statement = $this->getAlterStatementExistField(
-                    $field, $targetTable['fields'][$fieldkey]
+                    $sourceTable['name'],
+                    $field,
+                    $targetTable['fields'][$fieldkey]
                 );
 
             } else {
@@ -158,9 +160,61 @@ class Structur
         return $returnStatement;
     }
 
-    private function getAlterStatementExistField($sourceField, $targetField)
+    private function getAlterStatementExistField($sourceTable, $sourceField, $targetField)
     {
-        return '';
+        $change = false;
+        $alter = '';
+
+        echo print_r($sourceField, 1);
+
+        // Check-Type Change
+        $type = $sourceField['Type'];
+        if ($type != $targetField['Type']) {
+            $change = true;
+        }
+
+        // Check-Null Change
+        $null = " NULL ";
+        if ($sourceField['Null'] == 'NO') {
+            $null = " NOT NULL ";
+        }
+        if ($sourceField['Null'] != $targetField['Null']) {
+            $change = true;
+        }
+
+        // Check-Default Change
+        $default = "";
+        if ($sourceField['Default'] != $targetField['Default']) {
+            $change = true;
+            if ($sourceField['Type'] == "timestamp") {
+                $default = " DEFAULT ".$sourceField['Default'];
+                $default .= " ".$sourceField['Extra'];
+            } else {
+                $default = " DEFAULT '".$sourceField['Default']."'";
+            }
+        }
+
+        // Check-Extra-Change
+        $extra = "";
+        if (    $sourceField['Extra'] != $targetField['Extra']
+            AND $sourceField['Type'] != 'timestamp') {
+            $change = true;
+            $extra = $sourceField['Extra'];
+        }
+
+        // Check Collation
+
+        // Check Key
+
+        // Check Comment
+
+        if ($change) {
+            $alter .= 'ALTER TABLE '.$sourceTable;
+            $alter .= ' MODIFY COLUMN '.$sourceField['Field'].' ';
+            $alter .= ' '.$type.' '.$null.' '.$default.' '.$extra;
+        }
+
+        return $alter;
     }
 
     private function getAlterSatementNewField($sourceTable, $sourceField)
