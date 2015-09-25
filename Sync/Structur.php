@@ -165,8 +165,6 @@ class Structur
         $change = false;
         $alter = '';
 
-        echo print_r($sourceField, 1);
-
         // Check-Type Change
         $type = $sourceField['Type'];
         if ($type != $targetField['Type']) {
@@ -203,15 +201,18 @@ class Structur
         }
 
         // Check Collation
-
-        // Check Key
+        $collation = "";
+        if ($sourceField['Collation'] != $targetField['Collation']) {
+            $change = true;
+            $collation = "CHARACTER SET utf8 COLLATE ".$sourceField['Collation'];
+        }
 
         // Check Comment
 
         if ($change) {
             $alter .= 'ALTER TABLE '.$sourceTable;
             $alter .= ' MODIFY COLUMN '.$sourceField['Field'].' ';
-            $alter .= ' '.$type.' '.$null.' '.$default.' '.$extra;
+            $alter .= ' '.$type.' '.$collation.' '.$null.' '.$default.' '.$extra;
         }
 
         return $alter;
@@ -222,6 +223,11 @@ class Structur
         $alter =  'ALTER TABLE '.$sourceTable;
         $alter .= ' ADD COLUMN '.$sourceField['Field'];
         $alter .= ' '.$sourceField['Type'];
+
+        // Collation
+        if ($sourceField['Collation'] != "") {
+            $alter .= ' CHARACTER SET utf8 COLLATE '.$sourceField['Collation'];
+        }
 
         // Null-Value
         if ($sourceField['Null'] == 'NO') {
