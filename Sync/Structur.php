@@ -44,6 +44,9 @@ class Structur
         Core::showMessage(' > Load Source-Structur ', 'white', 1);
         $sourceTables = $this->getTableStructur($this->sourceDB);
 
+        echo '<pre>';
+        print_r($sourceTables);
+
         Core::showMessage(' > Load Target-Structur ', 'white', 1);
         $targetTables= $this->getTableStructur($this->targetDB);
         $tTables = array();
@@ -94,12 +97,15 @@ class Structur
         $tables = $database->query('SHOW TABLE STATUS')->fetchAll();
         $returnTables = array();
         foreach ($tables AS &$table) {
+            Core::showMessage('  > Table "'.$table['Name'].'"', 'white', 1, false);
             $newTable = array();
             $newTable['name'] = $table['Name'];
             $newTable['engine'] = $table['Engine'];
             $newTable['collation'] = $table['Collation'];
-            Core::showMessage('  > Table "'.$newTable['name'].'"', 'white', 1, false);
             $newTable['fields'] = $this->getColumnStructur(
+                $database, $newTable['name']
+            );
+            $newTable['indexes'] = $this->getIndexStructur(
                 $database, $newTable['name']
             );
             Core::showMessage(' done ', 'green', 1);
@@ -116,6 +122,16 @@ class Structur
             $newColumns[$column['Field']] = $column;
         }
         return $newColumns;
+    }
+
+    private function getIndexStructur($database, $tablename)
+    {
+        $newIndexes = array();
+        $indexes = $database->query('SHOW INDEX FROM '.$tablename)->fetchAll();
+        foreach ($indexes AS $index) {
+            $newIndexes[$index['Column_name']] = $index;
+        }
+        return $newIndexes;
     }
 
     /**
