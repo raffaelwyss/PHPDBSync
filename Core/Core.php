@@ -23,17 +23,32 @@ class Core
     public static $cli = false;
 
     /**
+     * Is Echo using
+     *
+     * @var boolean
+     */
+    public static $echo = false;
+
+    /**
      * set the Detail-Level of the Messages
      *
      * @var integer 0 = Excpetions and Main-Messages
      *              1 = Show Every-Table-Sync-Message
      */
-    public static $cliDetailLevel = 1;
+    public static $detailLevel = 1;
 
 
-    public static function cliMessage($message, $style = "white", $forLevel = 0, $newLine = true)
+    /**
+     * Show the Messages
+     *
+     * @param string $message
+     * @param string $style
+     * @param integer $forLevel
+     * @param boolean $newLine
+     */
+    public static function showMessage($message, $style = "white", $forLevel = 0, $newLine = true)
     {
-        if (self::$cli AND $forLevel <= self::$cliDetailLevel) {
+        if (self::$cli AND $forLevel <= self::$detailLevel) {
             switch ($style) {
                 case 'red':
                     echo chr(27)."[0;31m";
@@ -49,6 +64,24 @@ class Core
             if ($newLine) {
                 echo " \n";
             }
+        } else if (self::$echo AND $forLevel <= self::$detailLevel) {
+            switch ($style) {
+                case 'red':
+                    echo '<span style="color:#ff0000">';
+                    break;
+                case 'green':
+                    echo '<span style="color:#00aa00">';
+                    break;
+                default:
+                    echo '<span style="color:#000000">';
+                    break;
+            }
+            echo " ".$message."<span>";
+            if ($newLine) {
+                echo " <br>";
+            }
+            ob_flush();
+            flush();
         }
     }
 

@@ -58,9 +58,9 @@ class Database
     {
         $statement = $this->pdo->prepare($sql);
         if (!$statement->execute($data)) {
-            Core::cliMessage('SQL-Fehler: '.$sql, 'red');
-            Core::cliMessage('SQL-String: '.print_r($statement, 1));
-            Core::cliMessage(' >> '.$statement->errorInfo()[2], 'red', 1);
+            Core::showMessage('SQL-Fehler: '.$sql, 'red');
+            Core::showMessage('SQL-String: '.print_r($statement, 1));
+            Core::showMessage(' >> '.$statement->errorInfo()[2], 'red', 1);
             $this->pdo->rollBack();
             return false;
         }

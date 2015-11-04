@@ -41,43 +41,43 @@ class Structur
 
     public function synchronisation()
     {
-        Core::cliMessage(' > Load Source-Structur ', 'white', 1);
+        Core::showMessage(' > Load Source-Structur ', 'white', 1);
         $sourceTables = $this->getTableStructur($this->sourceDB);
 
-        Core::cliMessage(' > Load Target-Structur ', 'white', 1);
+        Core::showMessage(' > Load Target-Structur ', 'white', 1);
         $targetTables= $this->getTableStructur($this->targetDB);
         $tTables = array();
         foreach ($targetTables AS $table) {
             array_push($tTables, $table['name']);
         }
 
-        Core::cliMessage(' > start synchronisation', 'white', 1);
+        Core::showMessage(' > start synchronisation', 'white', 1);
 
         // Check Source-Tables...
         foreach ($sourceTables AS $sourceTable) {
 
             if (in_array($sourceTable['name'], $tTables)) {
                 // Field-Check
-                Core::cliMessage('   > Table '.$sourceTable['name'].' ', 'white', 1, false);
+                Core::showMessage('   > Table '.$sourceTable['name'].' ', 'white', 1, false);
                 $alterStatements = $this->getAlterStatementsForTable(
                     $sourceTable,
                     $targetTables[array_search($sourceTable['name'], $tTables)]
                 );
                 if (count($alterStatements) > 0) {
                     $this->targetDB->query(implode(';', $alterStatements));
-                    Core::cliMessage(' updated ', 'green');
+                    Core::showMessage(' updated ', 'green');
                 } else {
-                    Core::cliMessage(' no changes ', 'green');
+                    Core::showMessage(' no changes ', 'green');
                 }
 
             } else { // not exist
                 // > CreateTable
-                Core::cliMessage('   > Table '.$sourceTable['name'].' ', 'white', 1, false);
+                Core::showMessage('   > Table '.$sourceTable['name'].' ', 'white', 1, false);
                 $createStatement = $this->getTableStatement(
                     $this->sourceDB, $sourceTable
                 );
                 $this->targetDB->query($createStatement);
-                Core::cliMessage(' created ', 'green');
+                Core::showMessage(' created ', 'green');
             }
 
         }
@@ -98,11 +98,11 @@ class Structur
             $newTable['name'] = $table['Name'];
             $newTable['engine'] = $table['Engine'];
             $newTable['collation'] = $table['Collation'];
-            Core::cliMessage('  > Table "'.$newTable['name'].'"', 'white', 1, false);
+            Core::showMessage('  > Table "'.$newTable['name'].'"', 'white', 1, false);
             $newTable['fields'] = $this->getColumnStructur(
                 $database, $newTable['name']
             );
-            Core::cliMessage(' done ', 'green', 1);
+            Core::showMessage(' done ', 'green', 1);
             array_push($returnTables, $newTable);
         }
         return $returnTables;

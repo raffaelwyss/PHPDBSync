@@ -86,19 +86,27 @@ class PHPDBSync
     }
 
     /**
-     * Set the commandline-messages
+     * set the showMessage-Parameter
      *
-     * @param boolean $cli
+     * @param string $type
+     *                  cli = command line
+     *                  echo = php-echo
      */
-    public function setCli($cli = false)
+    public function setShowMessages($type = "")
     {
-        Core::$cli = $cli;
+        Core::$cli = false;
+        Core::$echo = false;
+        if ($type == 'cli') {
+            Core::$cli = true;
+        } else if ($type == 'echo') {
+            Core::$echo = true;
+        }
     }
 
     public function synchronisation($sourceName, $targetName)
     {
         // Show the Start-Message
-        Core::cliMessage("Synchronisation started");
+        Core::showMessage("Synchronisation started");
 
         // Connect-Databases
         if ($this->connectDatabases($sourceName, $targetName)) {
@@ -117,7 +125,7 @@ class PHPDBSync
         /**
          * Show the Finish-Message
          */
-        Core::cliMessage("Synchronisation finished");
+        Core::showMessage("Synchronisation finished");
     }
 
 
@@ -134,7 +142,7 @@ class PHPDBSync
             $sourceConfig['password']
         );
         $this->sourceDB = $sourceDB;
-        Core::cliMessage(" > SourceDB connected", 'green');
+        Core::showMessage(" > SourceDB connected", 'green');
 
         // Connection to the Target-Database
         $targetDB = new Database();
@@ -147,7 +155,7 @@ class PHPDBSync
             $targetConfig['password']
         );
         $this->targetDB = $targetDB;
-        Core::cliMessage(" > TargetDB connected", 'green');
+        Core::showMessage(" > TargetDB connected", 'green');
 
         if ($this->sourceDB->pdo !== false AND $this->targetDB->pdo !== false) {
             return true;
